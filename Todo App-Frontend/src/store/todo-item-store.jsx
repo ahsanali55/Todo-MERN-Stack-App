@@ -1,4 +1,5 @@
 import React, { createContext, useEffect, useReducer, useState } from "react";
+import { createTodoItemAtServer, fetchAllTodoItemsFromServer } from "../ApiFetchingEndPoints/todoFetching";
 
 // create context
 export const TodoItemContext = createContext({
@@ -19,7 +20,11 @@ const reduceTodoList = (currTodo, action) => {
       },
       ...currTodo,
     ];
-  } else if (action.type === "DELETE_ITEM") {
+  }
+  else if (action.type === "SET_TODOS"){
+    newTodo = action.payload;
+  }
+  else if (action.type === "DELETE_ITEM") {
     newTodo = currTodo.filter((item) => {
       return item.value !== action.payload.itemName;
     });
@@ -37,17 +42,39 @@ const reduceTodoList = (currTodo, action) => {
   return newTodo;
 };
 
+
 const TodoItemProvider = ({ children }) => {
   let counter = 0;
-  const [todoList, dispatchTodoList] = useReducer(reduceTodoList, []);
+  // Fetch data when component loads
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await fetchAllTodoItemsFromServer();
+        console.log("Data from backend:", data);
 
-  const addTodo = (item) => {
+        dispatchTodoList({
+          type: "SET_TODOS",
+          payload: data,
+        });
+
+      } catch (error) {
+        console.log("Error fetching todos:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+  const [todoList, dispatchTodoList] = useReducer(reduceTodoList, []);
+  console.log("Todo List at Frontend ", todoList)
+  const addTodo = async (item) => {
+    const newTodo = await createTodoItemAtServer({item});
+    console.log("The new ", newTodo)
     dispatchTodoList({
       type: "ADD_TODO",
       payload: {
-        Id: Date.now(),
-        item,
-        check: false,
+        Id: newTodo.id,
+        task: newTodo.task,
+        check: newTodo.completed,
       },
     });
   };
