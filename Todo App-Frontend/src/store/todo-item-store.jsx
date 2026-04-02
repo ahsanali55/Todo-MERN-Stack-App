@@ -1,39 +1,45 @@
 import React, { createContext, useEffect, useReducer, useState } from "react";
-import { createTodoItemAtServer, fetchAllTodoItemsFromServer } from "../ApiFetchingEndPoints/todoFetching";
+import {
+  AddToCompletedMarkToServer,
+  createTodoItemAtServer,
+  deleteTodoItemAtServer,
+  fetchAllTodoItemsFromServer,
+} from "../ApiFetchingEndPoints/todoFetching";
 
 // create context
 export const TodoItemContext = createContext({
   todoList: [],
   addTodo: () => {},
   deleteTodo: () => {},
+  editItem: () => {},
+  updateItem: () => {},
 });
 
 const reduceTodoList = (currTodo, action) => {
   let newTodo = currTodo;
 
   if (action.type === "ADD_TODO") {
-    newTodo = [
+   
+    return (newTodo = [
+      ...currTodo,
       {
         id: action.payload.Id,
-        value: action.payload.item,
-        isChecked: action.payload.check,
+        task: action.payload.task,
+        completed: action.payload.completed,
       },
-      ...currTodo,
-    ];
-  }
-  else if (action.type === "SET_TODOS"){
-    newTodo = action.payload;
-  }
-  else if (action.type === "DELETE_ITEM") {
+    ]);
+  } else if (action.type === "SET_TODOS") {
+    return (newTodo = action.payload);
+  } else if (action.type === "DELETE_ITEM") {
     newTodo = currTodo.filter((item) => {
-      return item.value !== action.payload.itemName;
+      return item.id !== action.payload.id;
     });
   } else if (action.type === "UPDATE_CHECKED") {
     newTodo = currTodo.map((item) => {
-      if (item.id === action.payload.id) {
+      if (item.id === action.payload.updatedTodo.id) {
         return {
           ...item,
-          isChecked: !item.isChecked, // toggle method concept
+          completed: !item.completed, // toggle method concept
         };
       }
       return item;
@@ -41,7 +47,6 @@ const reduceTodoList = (currTodo, action) => {
   }
   return newTodo;
 };
-
 
 const TodoItemProvider = ({ children }) => {
   let counter = 0;
@@ -56,7 +61,6 @@ const TodoItemProvider = ({ children }) => {
           type: "SET_TODOS",
           payload: data,
         });
-
       } catch (error) {
         console.log("Error fetching todos:", error);
       }
@@ -65,38 +69,53 @@ const TodoItemProvider = ({ children }) => {
     fetchData();
   }, []);
   const [todoList, dispatchTodoList] = useReducer(reduceTodoList, []);
-  console.log("Todo List at Frontend ", todoList)
+  console.log("Todo List at Frontend ", todoList);
+
   const addTodo = async (item) => {
-    const newTodo = await createTodoItemAtServer({item});
-    console.log("The new ", newTodo)
+    const newTodo = await createTodoItemAtServer({ item });
+    console.log("The new ", newTodo);
+
     dispatchTodoList({
       type: "ADD_TODO",
       payload: {
         Id: newTodo.id,
         task: newTodo.task,
-        check: newTodo.completed,
+        completed: newTodo.completed,
       },
     });
   };
 
-  const deleteTodo = (itemName) => {
+  const deleteTodo = async (id) => {
+    const deletedTodo = await deleteTodoItemAtServer(id);
+    console.log("The Deleted Item from the server ", deletedTodo);
     dispatchTodoList({
       type: "DELETE_ITEM",
       payload: {
-        itemName,
+        id: id,
       },
     });
   };
 
   // Update item
-  const updateItem = (id) => {
+  const updateItem = async (id) => {
+    console.log(id, )
+    const updatedTodo = await AddToCompletedMarkToServer(id);
+    console.log("The Updated Item from the server ", updatedTodo);
     dispatchTodoList({
       type: "UPDATE_CHECKED",
       payload: {
-        id,
+        updatedTodo: updatedTodo,
       },
     });
+
   };
+    // edit item
+    const editItem = async (id) => {
+      // const itemToEdit = await 
+    //   dispatchTodoList({
+    //     type: "EDIT_ITEM",
+    //     payload: 
+    }
   return (
     <TodoItemContext.Provider
       value={{
@@ -104,6 +123,7 @@ const TodoItemProvider = ({ children }) => {
         addTodo,
         deleteTodo,
         updateItem,
+        editItem
       }}
     >
       {children}
