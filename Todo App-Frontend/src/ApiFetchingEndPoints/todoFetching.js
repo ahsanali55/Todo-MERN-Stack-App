@@ -66,7 +66,29 @@ export const AddToCompletedMarkToServer = async (id ) => {
   }
 }
 
-// Edit Item at server
+// Update Item at server
+export const updateTodoItemAtServer = async (newTask, id) => {
+  console.log("Called edit ", newTask, id)
+  try {
+    const response = await fetch(`${API_BASE_URL}/todo/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringlify(newTask),
+    })
+    const data = await response.json();
+    if (!data) {
+      console.log("Data never submited successfully");
+    }
+    return mapServerDataToFrontend(data);
+  } catch (error) {
+    console.log("Error while updating todoItem ", error);
+  }
+}
+
+
+
 // export const editTodoItemAtServer = async (id, )
 const mapServerDataToFrontend = (serverData) => {
   return {

@@ -4,6 +4,7 @@ import {
   createTodoItemAtServer,
   deleteTodoItemAtServer,
   fetchAllTodoItemsFromServer,
+  updateTodoItemAtServer,
 } from "../ApiFetchingEndPoints/todoFetching";
 
 // create context
@@ -11,7 +12,7 @@ export const TodoItemContext = createContext({
   todoList: [],
   addTodo: () => {},
   deleteTodo: () => {},
-  editItem: () => {},
+  markCompleted: () => {},
   updateItem: () => {},
 });
 
@@ -19,7 +20,6 @@ const reduceTodoList = (currTodo, action) => {
   let newTodo = currTodo;
 
   if (action.type === "ADD_TODO") {
-   
     return (newTodo = [
       ...currTodo,
       {
@@ -34,6 +34,15 @@ const reduceTodoList = (currTodo, action) => {
     newTodo = currTodo.filter((item) => {
       return item.id !== action.payload.id;
     });
+  } else if (action.type === "EDIT_ITEM") {
+    return (
+      newTodo = newTodo.map((todo) => {
+        if (todo.id === action.payload.id){
+          return todo.task = action.payload.task
+        }
+        return todo;
+      })
+    )
   } else if (action.type === "UPDATE_CHECKED") {
     newTodo = currTodo.map((item) => {
       if (item.id === action.payload.updatedTodo.id) {
@@ -91,14 +100,14 @@ const TodoItemProvider = ({ children }) => {
     dispatchTodoList({
       type: "DELETE_ITEM",
       payload: {
-        id: id,
+        id: deletedTodo.id,
       },
     });
   };
 
   // Update item
-  const updateItem = async (id) => {
-    console.log(id, )
+  const markCompleted = async (id) => {
+    console.log(id);
     const updatedTodo = await AddToCompletedMarkToServer(id);
     console.log("The Updated Item from the server ", updatedTodo);
     dispatchTodoList({
@@ -107,23 +116,27 @@ const TodoItemProvider = ({ children }) => {
         updatedTodo: updatedTodo,
       },
     });
-
   };
-    // edit item
-    const editItem = async (id) => {
-      // const itemToEdit = await 
-    //   dispatchTodoList({
-    //     type: "EDIT_ITEM",
-    //     payload: 
-    }
+  // Update item
+  const updateItem = async (newTask, id) => {
+    const itemToEdit = await updateTodoItemAtServer(newTask, id);
+    console.log("Finally data came from the backend to the update item ", updateItem);
+    dispatchTodoList({
+      type: "EDIT_ITEM",
+      payload: {
+        task: itemToEdit.task,
+        id: itemToEdit.id,
+      },
+    });
+  };
   return (
     <TodoItemContext.Provider
       value={{
         todoList,
         addTodo,
         deleteTodo,
+        markCompleted,
         updateItem,
-        editItem
       }}
     >
       {children}

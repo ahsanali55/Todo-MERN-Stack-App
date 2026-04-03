@@ -40,7 +40,7 @@ exports.getTodoById = async (req, res, next) => {
       return res.status(404).json({error: 'Todo item not found.'});
     }
     
-    return res.status(200).json({ message: "Todo item deleted successfully." });
+    return res.status(200).json(deletedItem);
     
   } catch (error) {
     console.log("Error: ", error);
@@ -49,11 +49,11 @@ exports.getTodoById = async (req, res, next) => {
 }
 
 // Update a todo item by ID
-exports.updateTodoById = async (req, res, next) => {
+exports.markCompletedTodoById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    console.log("ID from frontend for update: ", id);
+    console.log("ID from frontend for update markCompletedTodoById : ", id);
     const updatedItem = await todoItem.findByIdAndUpdate(id);
   if (!updatedItem) {
     return res.status(404).json({ error: 'Todo item not found.' });
@@ -73,4 +73,23 @@ exports.updateTodoById = async (req, res, next) => {
     console.log("Error: ", err);
     res.status(500).json({ error: 'An error occurred while updating the todo item.' });
   }
+}
+
+exports.updateTodoItemById = async (req, res, next) => {
+  console.log("Update TodoItem req ", req.body);
+  const { id, task } = req.body;
+  const updatedItem = await todoItem.findByIdAndUpdate(id);
+  if (!updatedItem) {
+    console.log("Updated Item not found at database ", updatedItem);
+  }
+  updatedItem.task = task;
+  console.log("Update Todoitem at Backend ". updatedItem);
+
+  updatedItem.save().then((Item)  => {
+      res.status(200).json(Item);
+      console.log("Updated Item at Backend: ", Item);
+  }).catch ((error) => {
+      console.log("Error ", error);
+      res.status(500).json({error: "An error occured while updating the todo item"});
+  })
 }
