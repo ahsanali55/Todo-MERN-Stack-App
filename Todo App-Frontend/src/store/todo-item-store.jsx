@@ -35,14 +35,12 @@ const reduceTodoList = (currTodo, action) => {
       return item.id !== action.payload.id;
     });
   } else if (action.type === "EDIT_ITEM") {
-    return (
-      newTodo = newTodo.map((todo) => {
-        if (todo.id === action.payload.id){
-          return todo.task = action.payload.task
-        }
-        return todo;
-      })
-    )
+    return (newTodo = newTodo.map((todo) => {
+      if (todo.id === action.payload.id) {
+        return action.payload;
+      }
+      return todo;
+    }));
   } else if (action.type === "UPDATE_CHECKED") {
     newTodo = currTodo.map((item) => {
       if (item.id === action.payload.updatedTodo.id) {
@@ -64,7 +62,6 @@ const TodoItemProvider = ({ children }) => {
     const fetchData = async () => {
       try {
         const data = await fetchAllTodoItemsFromServer();
-        console.log("Data from backend:", data);
 
         dispatchTodoList({
           type: "SET_TODOS",
@@ -78,11 +75,9 @@ const TodoItemProvider = ({ children }) => {
     fetchData();
   }, []);
   const [todoList, dispatchTodoList] = useReducer(reduceTodoList, []);
-  console.log("Todo List at Frontend ", todoList);
 
   const addTodo = async (item) => {
     const newTodo = await createTodoItemAtServer({ item });
-    console.log("The new ", newTodo);
 
     dispatchTodoList({
       type: "ADD_TODO",
@@ -96,7 +91,7 @@ const TodoItemProvider = ({ children }) => {
 
   const deleteTodo = async (id) => {
     const deletedTodo = await deleteTodoItemAtServer(id);
-    console.log("The Deleted Item from the server ", deletedTodo);
+
     dispatchTodoList({
       type: "DELETE_ITEM",
       payload: {
@@ -107,9 +102,9 @@ const TodoItemProvider = ({ children }) => {
 
   // Update item
   const markCompleted = async (id) => {
-    console.log(id);
+    id;
     const updatedTodo = await AddToCompletedMarkToServer(id);
-    console.log("The Updated Item from the server ", updatedTodo);
+
     dispatchTodoList({
       type: "UPDATE_CHECKED",
       payload: {
@@ -118,14 +113,13 @@ const TodoItemProvider = ({ children }) => {
     });
   };
   // Update item
-  const updateItem = async (newTask, id) => {
-    const itemToEdit = await updateTodoItemAtServer(newTask, id);
-    console.log("Finally data came from the backend to the update item ", updateItem);
+  const updateItem = async (task, id) => {
+    const itemToEdit = await updateTodoItemAtServer({ task }, id);
+
     dispatchTodoList({
       type: "EDIT_ITEM",
       payload: {
-        task: itemToEdit.task,
-        id: itemToEdit.id,
+        ...itemToEdit,
       },
     });
   };

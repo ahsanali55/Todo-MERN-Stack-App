@@ -9,7 +9,6 @@ import TodoList from './components/TodoList';
 import WelcomeMessage from './components/WelcomeMessage';
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
     <TodoItemProvider>

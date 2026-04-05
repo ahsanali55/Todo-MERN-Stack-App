@@ -7,22 +7,23 @@ import { FaCheckCircle, FaEdit } from "react-icons/fa";
 const TodoList = () => {
   const { todoList, deleteTodo, markCompleted, updateItem } =
     useContext(TodoItemContext);
-  const [isEdit, setisEdit] = useState(false);
+  const [isEdit, setisEdit] = useState(null);
+  const [editText, setEditText] = useState("");
+
   const inputRef = useRef(null);
-  console.log("TodoList at todo ", todoList);
+
   const handleEdit = (id) => {
-   
-    setisEdit((prev) => !prev);
-    // useEffect(() => {
-      if (isEdit) {
-        inputRef.current.focus(); // 👈 focus
-      }
-    // }, [isEdit]);
+    setisEdit(id);
+
+    if (isEdit) {
+      inputRef.current.focus(); // 👈 focus
+    }
   };
   const handleSubmit = (event, id) => {
-    console.log("The value at event ", inputRef.current.value, id)
+    console.log("The value at event ", inputRef.current.value, id);
     event.preventDefault();
-    setisEdit(false);
+    setisEdit(null);
+    setEditText(event.target.value);
     updateItem(inputRef.current.value, id);
   };
   return (
@@ -51,17 +52,18 @@ const TodoList = () => {
                     <RiCheckboxBlankCircleLine className="text-[#A89CCC] hover:text-[#8D83B7]" />
                   )}
                 </div>
-                {isEdit ? (
-                  <form onSubmit={() => handleSubmit(event, item.id)}>
+                {isEdit === item.id ? (
+                  <form onSubmit={(e) => handleSubmit(e, item.id)}>
                     <input
                       ref={inputRef}
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
                       type="text"
                       className={`transition-all duration-300 px-2 py-1 rounded-md border border-purple-400 bg-white outline-none ${
                         item.completed
                           ? "text-[#A89CCC] line-through opacity-60"
                           : "text-gray-700 font-medium"
                       }`}
-                      // value={item.task}
                     />
                   </form>
                 ) : (
@@ -83,7 +85,10 @@ const TodoList = () => {
                 <MdOutlineDeleteSweep />
               </button>
               <button
-                onClick={() => handleEdit(item.id)}
+                onClick={() => {
+                  handleEdit(item.id);
+                  setEditText(item.task); // preLoad old value
+                }}
                 className="text-[#c1b0e2] hover:text-blue-500 text-xl transition-all duration-300 hover:scale-110 ml-2"
               >
                 <FaEdit />

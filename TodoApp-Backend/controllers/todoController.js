@@ -2,7 +2,7 @@ const todoItem = require("../models/todoItem");
 
 exports.createTodo = async (req, res, next) => {
   try {
-    console.log("Data comes from frontend to Backend ", req.body)
+    
     const { item } = req.body;
 
     const createItem =  new todoItem({ task: item });
@@ -52,8 +52,6 @@ exports.getTodoById = async (req, res, next) => {
 exports.markCompletedTodoById = async (req, res, next) => {
   try {
     const { id } = req.params;
-
-    console.log("ID from frontend for update markCompletedTodoById : ", id);
     const updatedItem = await todoItem.findByIdAndUpdate(id);
   if (!updatedItem) {
     return res.status(404).json({ error: 'Todo item not found.' });
@@ -62,7 +60,6 @@ exports.markCompletedTodoById = async (req, res, next) => {
 
     updatedItem.save().then((savedItem) => {
       res.status(200).json(savedItem);
-      console.log("Updated Item at Backend: ", updatedItem);
     }).catch((error) => {
       console.log("Error saving updated item: ", error);
       res.status(500).json({ error: 'An error occurred while saving the updated todo item.' });
@@ -76,15 +73,13 @@ exports.markCompletedTodoById = async (req, res, next) => {
 }
 
 exports.updateTodoItemById = async (req, res, next) => {
-  console.log("Update TodoItem req ", req.body);
-  const { id, task } = req.body;
+  const { task } = req.body;
+  const { id } = req.params;
   const updatedItem = await todoItem.findByIdAndUpdate(id);
   if (!updatedItem) {
     console.log("Updated Item not found at database ", updatedItem);
   }
   updatedItem.task = task;
-  console.log("Update Todoitem at Backend ". updatedItem);
-
   updatedItem.save().then((Item)  => {
       res.status(200).json(Item);
       console.log("Updated Item at Backend: ", Item);
